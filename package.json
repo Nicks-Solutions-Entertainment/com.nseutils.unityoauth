@@ -7,7 +7,7 @@
   "license": "MIT",
   "documentationUrl": "",
   "changelogURL": "",
-  "description": "Simple OAuth2 client for Unity. /nBased on the authentication-unity repository from https://github.com/cdmvision/authentication-unity , this package was modified to have a better integration with more than one type of OAuth2 provider, including Azure Entra ID and multiple redirect system depending of witch platform you are runing it\n Web GL is a Work in progress yet, but is one of the main objectives from this package.",
+  "description": "Simple OAuth2 client for Unity. Based on the authentication-unity repository from https://github.com/cdmvision/authentication-unity, this package has been modified to provide better integration with multiple types of OAuth2 providers, including Azure Entra ID, and a multi-redirect system depending on which platform you are running it on. WebGL is a work in progress, but it is one of the main objectives of this package.",
   "hideInEditor": false,
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "2.0.2"

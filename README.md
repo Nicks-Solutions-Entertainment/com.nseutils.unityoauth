@@ -4,7 +4,10 @@
 #### Based on <a href="https://github.com/cdmvision/authentication-unity.git">authentication-unity</a> Repository
 //como inicio um poaragrafo mesmo, copilot?
 
- > Simple OAuth2 client for Unity. /nBased on the authentication-unity repository from https://github.com/cdmvision/authentication-unity , this package was modified to have a better integration with more than one type of OAuth2 provider, including Azure Entra ID and multiple redirect system depending of witch platform you are runing it\n Web GL is a Work in progress yet, but is one of the main objectives from this package.
+> This package was created to provide a better integration with multiple types of OAuth2 providers on same project, including now EntraID and multi-redirect adapting acording with the platform you are runing it.
+
+> ##### Web GL is a Work in progress yet, but is one of the main objectives from this package.
+ 
 - Ready Oauth providers
   - GitHub
   - Google

@@ -2,7 +2,6 @@
 
 
 #### Based on <a href="https://github.com/cdmvision/authentication-unity.git">authentication-unity</a> Repository
-//como inicio um poaragrafo mesmo, copilot?
 
 > This package was created to provide a better integration with multiple types of OAuth2 providers on same project, including now EntraID and multi-redirect adapting acording with the platform you are runing it.
 

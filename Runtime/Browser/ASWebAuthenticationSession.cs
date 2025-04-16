@@ -6,7 +6,7 @@ using AOT;
 using System.Runtime.InteropServices;
 #endif
 
-namespace Cdm.Authentication.Browser
+namespace nseutils.unityoauth.Browser
 {
     /// <summary>
     /// A session that an app uses to authenticate a user through a web service.

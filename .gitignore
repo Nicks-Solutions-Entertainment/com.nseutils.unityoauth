@@ -9,6 +9,9 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+/.[U]utmp/
+/.[U]utmp/*.*
+/.utmp
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
@@ -75,3 +78,4 @@ crashlytics-build.properties
 #NL3D specific
 /[Aa]ssets/[Ss]amples/*
 /[Aa]ssets/[Ss]amples.meta
+

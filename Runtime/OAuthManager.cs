@@ -1,155 +1,148 @@
-using Cdm.Authentication;
-using Cdm.Authentication.OAuth2;
+
+using Newtonsoft.Json;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
-
-public class OAuthManager : MonoBehaviour
+namespace nseutils.unityoauth
 {
 
-    static OAuthManager _instance;
-    public static OAuthManager Instance => _instance;
-    public delegate void UserInfoReceived(IUserInfo userInfo);
-    public delegate void DeepLinkDelegate(string deeplinkUrl);
-
-    internal DeepLinkDelegate onDeeplinkActivated;
-    private Action _signedIn;
-    private UserInfoReceived _userInfoReceived;
-    private Action _signInFailed;
-    private Action _signedOut;
-
-    OauthConnection connection;
-
-    public void RegisterUserLogedCallback(UserInfoReceived handler)
-    {
-        _userInfoReceived = handler;
-    }
-    public void UnregisterUserLogedCallback() => _userInfoReceived = null;
-
-    [SerializeField]
-    private OAuthAppProfile appProfile;
-    //[SerializeField] OAuthAppProfile n_session;
-
-    [SerializeField]
-    private UnityEvent onSignedIn = new();
-
-    [SerializeField]
-    private UnityEvent onSignInFailed = new();
-
-    [SerializeField]
-    private UnityEvent onSignedOut = new();
-
-    [SerializeField]
-    private UnityEvent<IUserInfo> onUserInfoReceived = new();
-
-    public void SignIn() => StartCoroutine(_SignIn());
-
-    public void SignOut() => StartCoroutine(_SignOut());
-
-
-    IEnumerator _SignIn()
+    public class OAuthManager : MonoBehaviour
     {
 
-        yield return connection.Authenticate();
-    }
+        static OAuthManager _instance;
+        public static OAuthManager Instance => _instance;
+        public delegate void UserInfoReceived(IOauthUserInfo userInfo);
+        public delegate void DeepLinkDelegate(string deeplinkUrl);
 
-    IEnumerator _RefreshBeforeExpiry()
-    {
-        if (!connection.HasRefreshToken(out DateTime? expiresAt) || !expiresAt.HasValue)
-            yield break;
+        internal DeepLinkDelegate onDeeplinkActivated;
+        public Action _signedIn;
+        public UserInfoReceived _userInfoReceived;
+        public Action _signInFailed;
+        public Action _signedOut;
 
-
-        int seconds = (int)Math.Min(0, Math.Floor((DateTime.Now - expiresAt).Value.TotalSeconds - 60));
-
-        yield return new WaitForSecondsRealtime(seconds);
-
-        yield return connection.Refresh();
-    }
-    IEnumerator _SignOut()
-    {
-        yield return connection.SignOut();
-    }
-    IEnumerator _FetchUserInfo()
-    {
-        yield return connection.FetchUserInfo();
-    }
-
-    private void Awake()
-    {
-        if (_instance == null)
+        public string applicationAbsoluteURL
         {
-            _instance = this;
-            Application.deepLinkActivated += DeepLinkActivated;
-
+            private set; get;
         }
-        else Destroy(gameObject);
-    }
-    private void Start()
-    {
-        //n_session = OAuthAppProfile.New(new OauthAppInfos(
-        //    Netherlands3D.Authentication.IdentityProvider.AzureAD,
-        //    "cliendId",
-        //    "cSecret",
-        //    "redirectUrl",
-        //    "scope"));
-    }
 
-    private void OnDestroy()
-    {
-        if (_instance == this)
-            _instance = null;
-        Application.deepLinkActivated -= DeepLinkActivated;
+        internal OauthConnection connection
+        {
+            get; private set;
+        }
 
-        onDeeplinkActivated = null;
-        _signedIn = null;
-        _userInfoReceived = null;
-        _signInFailed = null;
-        _signedOut = null;
+        public void RegisterUserLogedCallback(UserInfoReceived handler)
+        {
+            _userInfoReceived = handler;
+        }
+        public void UnregisterUserLogedCallback() => _userInfoReceived = null;
 
+        [SerializeField]
+        private OAuthAppProfile appProfile;
 
-    }
+        //public void SignIn() => StartCoroutine(_SignIn());
+        public void SignIn() => UTask_SignIn();
 
-    private void DeepLinkActivated(string deeplinkUrl) => onDeeplinkActivated?.Invoke(deeplinkUrl);
+        public void SignOut() => StartCoroutine(_SignOut());
 
-    private void OnEnable()
-    {
-        if (!Application.isEditor && Application.platform == RuntimePlatform.WebGLPlayer)
-            connection = new WebGLOauthConnection(appProfile.oauthAppInfos);
-        else
+        async void UTask_SignIn()
+        {
+            applicationAbsoluteURL = Application.absoluteURL;
+            bool _ = await connection.UTask_Authenticate();
+        }
+
+        [ContextMenu("TestDictionary")]
+        void TestDictionary()
+        {
+            AuthorizationCodeRequest req = new AuthorizationCodeRequest()
+            {
+                clientId = "v_clientId",
+                scope = "v_scope",
+                redirectUri = "v_redirectUri",
+                codeChallenge = "v_codeChallenge",
+
+            };
+
+            string reqStr = JsonConvert.SerializeObject(req);
+            Dictionary<string, string> dict = JsonConvert.DeserializeObject<Dictionary<string, string>>(reqStr);
+            string _ = "{";
+            foreach (var item in dict)
+                _ += $"  {item.Key} : {item.Value},\n";
+
+            _ += "}";
+            Debug.Log(_);
+        }
+        
+        IEnumerator _SignOut()
+        {
+            yield return connection.SignOut();
+        }
+
+        void UTask_FetchUserInfo()
+        {
+
+            connection.UTask_FetchUserInfo();
+        }
+        private void Awake()
+        {
+            if (_instance == null)
+            {
+                _instance = this;
+                Application.deepLinkActivated += DeepLinkActivated;
+
+            }
+            else Destroy(gameObject);
+        }
+        private void Start()
+        {
+        }
+
+        private void OnDestroy()
+        {
+            if (_instance == this)
+                _instance = null;
+            Application.deepLinkActivated -= DeepLinkActivated;
+
+            onDeeplinkActivated = null;
+            _signedIn = null;
+            _userInfoReceived = null;
+            _signInFailed = null;
+            _signedOut = null;
+        }
+
+        private void DeepLinkActivated(string deeplinkUrl) => onDeeplinkActivated?.Invoke(deeplinkUrl);
+
+        private void OnEnable()
+        {
             connection = new StdOauthConection(appProfile.oauthAppInfos);
 
-        //appProfile.Initialize();
-        connection.OnSignedIn += OnSignInSuccess;
-        connection.OnSignedOut += OnSignOut;
-        connection.OnSignInFailed += OnFailSignIn;
-        connection.OnUserInfoReceived += OnUserInfoReceived;
-        //appProfile.OnSignedOut.AddListener(OnSignOut);
-        //appProfile.OnSignInFailed.AddListener(OnFailSignIn);
-        //appProfile.OnUserInfoReceived.AddListener(OnUserInfoReceived);
+            connection.OnSignedIn += OnSignInSuccess;
+            connection.OnSignedOut += OnSignOut;
+            connection.OnSignInFailed += OnFailSignIn;
+            connection.OnUserInfoReceived += OnUserInfoReceived;
+        }
+
+        private void OnSignInSuccess(AccessTokenResponse accessTokenResponse)
+        {
+            _signedIn?.Invoke();
+            UTask_FetchUserInfo();
+        }
+
+
+        private void OnSignOut()
+        {
+            _signedOut?.Invoke();
+        }
+
+        private void OnFailSignIn()
+        {
+            _signInFailed?.Invoke();
+        }
+
+        private void OnUserInfoReceived(IOauthUserInfo userInfo)
+        {
+            _userInfoReceived?.Invoke(userInfo);
+        }
     }
 
-
-    private void OnSignInSuccess(AccessTokenResponse accessTokenResponse)
-    {
-        onSignedIn?.Invoke();
-        StartCoroutine(_FetchUserInfo());
-        StartCoroutine(_RefreshBeforeExpiry());
-    }
-
-
-    private void OnSignOut()
-    {
-        onSignedOut?.Invoke();
-    }
-
-    private void OnFailSignIn()
-    {
-        onSignInFailed?.Invoke();
-    }
-
-    private void OnUserInfoReceived(IUserInfo userInfo)
-    {
-        onUserInfoReceived?.Invoke(userInfo);
-    }
 }

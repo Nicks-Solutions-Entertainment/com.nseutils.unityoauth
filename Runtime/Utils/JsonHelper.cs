@@ -4,7 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Cdm.Authentication.Utils
+namespace nseutils.unityoauth.Utils
 {
     public static class JsonHelper
     {

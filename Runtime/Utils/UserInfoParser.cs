@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace Cdm.Authentication.Utils
+namespace nseutils.unityoauth.Utils
 {
     public static class UserInfoParser
     {
-        public static async Task<IUserInfo> GetUserInfoAsync<T>(HttpClient httpClient, string url,
+        public static async Task<IOauthUserInfo> GetUserInfoAsync<T>(HttpClient httpClient, string url,
             AuthenticationHeaderValue authenticationHeader, CancellationToken cancellationToken = default)
-            where T : IUserInfo
+            where T : IOauthUserInfo
         {
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

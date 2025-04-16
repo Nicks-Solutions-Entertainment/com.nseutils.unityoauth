@@ -1,38 +1,30 @@
 ﻿using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Cdm.Authentication.OAuth2;
-using Cdm.Authentication.Utils;
+using nseutils.unityoauth;
+using nseutils.unityoauth.Utils;
+using Cysharp.Threading.Tasks;
 
-namespace Cdm.Authentication.Clients
+namespace nseutils.unityoauth.Clients
 {
-    public class FacebookAuth : AuthorizationCodeFlow, IUserInfoProvider
+    public class FacebookAuth : AuthorizationCodeFlow,IOauthUserInfoCompatible
     {
         public override string authorizationUrl => "https://www.facebook.com/dialog/oauth";
         public override string accessTokenUrl => "https://graph.facebook.com/oauth/access_token";
-        public override string userInfoUrl => "https://graph.facebook.com/me";
-        
-        public FacebookAuth(Configuration configuration) : base(configuration)
+        public string userInfoUrl => "https://graph.facebook.com/me";
+
+        public FacebookAuth(OauthAppConfiguration configuration) : base(configuration)
         {
         }
-        
-        public async Task<IUserInfo> GetUserInfoAsync(CancellationToken cancellationToken = default)
+
+        public async UniTask<IOauthUserInfo> GetUserInfos()
         {
-            if (accessTokenResponse == null)
-                throw new AccessTokenRequestException(new AccessTokenRequestError()
-                {
-                    code = AccessTokenRequestErrorCode.InvalidGrant,
-                    description = "Authentication required."
-                }, null);
-            
-            var authenticationHeader = accessTokenResponse.GetAuthenticationHeader();
-            return await UserInfoParser.GetUserInfoAsync<FacebookUserInfo>(
-                httpClient, userInfoUrl, authenticationHeader, cancellationToken);
+            return await FetchUserInfo<MSEntraIDInfo>(userInfoUrl);
         }
     }
     
     [DataContract]
-    public class FacebookUserInfo : IUserInfo
+    public class FacebookUserInfo : IOauthUserInfo
     {
         [DataMember(Name = "id", IsRequired = true)]
         public string id { get; set; }

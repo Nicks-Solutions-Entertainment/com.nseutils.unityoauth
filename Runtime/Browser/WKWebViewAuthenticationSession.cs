@@ -6,7 +6,7 @@ using AOT;
 using System.Runtime.InteropServices;
 #endif
 
-namespace Cdm.Authentication.Browser
+namespace nseutils.unityoauth.Browser
 {
     public class WKWebViewAuthenticationSession : IDisposable
     {

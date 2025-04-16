@@ -1,21 +1,18 @@
 {
   "name": "com.nseutils.unityoauth",
   "displayName": "Unity Oauth",
-  "version": "0.9.0",
+  "version": "1.0.0-pre",
   "unity": "6000.0",
   "author": "NSE Creative",
   "license": "MIT",
   "documentationUrl": "",
   "changelogURL": "",
   "description": "Simple OAuth2 client for Unity. Based on the authentication-unity repository from https://github.com/cdmvision/authentication-unity, this package has been modified to provide better integration with multiple types of OAuth2 providers, including Azure Entra ID, and a multi-redirect system depending on which platform you are running it on. WebGL is a work in progress, but it is one of the main objectives of this package.",
-  "hideInEditor": false,
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "2.0.2"
   },
   "repository": {
     "url": ""
   },
-  "samples": [
-    
-  ]
+  "samples": []
 }

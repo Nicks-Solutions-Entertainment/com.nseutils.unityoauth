@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Web;
 
-namespace Cdm.Authentication.Utils
+namespace nseutils.unityoauth.Utils
 {
     public class UrlBuilder
     {

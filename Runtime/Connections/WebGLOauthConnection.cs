@@ -1,5 +1,5 @@
-using Cdm.Authentication;
-using Cdm.Authentication.OAuth2;
+
+using nseutils.unityoauth;
 using System;
 using System.Collections;
 using System.Runtime.InteropServices;
@@ -10,25 +10,30 @@ public class WebGLOauthConnection : OauthConnection
 {
 
 #if !UNITY_EDITOR && UNITY_WEBGL
-        [DllImport("__Internal")]
-    private static extern void OAuthInit();
+    //    [DllImport("__Internal")]
+    //private static extern void oAuthInit();
 
-    [DllImport("__Internal")]
-    private static extern void OAuthSignIn(
-        string authorizationEndpoint,
-        string tokenEndpoint,
-        string clientId,
-        string clientSecret,
-        string redirectUri,
-        string scopes
-    );
+    //[DllImport("__Internal")]
+    //private static extern void oAuthSignIn(
+    //    string authorizationEndpoint,
+    //    string tokenEndpoint,
+    //    string clientId,
+    //    string clientSecret,
+    //    string redirectUri,
+    //    string scopes
+    //);
 #else
 
-    private void OAuthInit()
+
+
+
+#endif
+
+    private void oAuthInit()
     {
 
     }
-    private void OAuthSignIn(
+    private void oAuthSignIn(
         string authorizationEndpoint,
         string tokenEndpoint,
         string clientId,
@@ -40,25 +45,18 @@ public class WebGLOauthConnection : OauthConnection
 
     }
 
-
-#endif
-
-    //[DllImport("__Internal")]
     //private static extern void OAuthSignOut();
     public WebGLOauthConnection(OauthAppInfos oauthProfileInfos) : base(oauthProfileInfos)
     {
-        OAuthInit();
+        oAuthInit();
         Debug.Log("WebGLOauthConnection created");
     }
-
+    
     public override IEnumerator Authenticate()
     {
         accessTokenResponse = null;
-        
 
-        GameObject oauthCallbackGameObject = new GameObject("WebGlOauthBridge");
-        WebGlOauthBridge interceptor = WebGlOauthBridge.Instance;
-
+        var interceptor = WebGlOauthListener.Instance;
         interceptor.OnSignedIn += (token) =>
         {
             WebGLAccessTokenResponse response = JsonUtility.FromJson<WebGLAccessTokenResponse>(token);
@@ -77,13 +75,13 @@ public class WebGLOauthConnection : OauthConnection
             SignedInFailed();
         };
 
-        OAuthSignIn(
-            session.client.authorizationUrl,
-            session.client.accessTokenUrl,
-            session.client.configuration.clientId,
-            session.client.configuration.clientSecret,
-            session.client.configuration.redirectUri,
-            session.client.configuration.scope
+        oAuthSignIn(
+            session.codeflow.authorizationUrl,
+            session.codeflow.accessTokenUrl,
+            session.codeflow.configuration.clientId,
+            session.codeflow.configuration.clientSecret,
+            session.codeflow.configuration.redirectUri,
+            session.codeflow.configuration.scope
         );
 
         yield return null;
@@ -99,38 +97,38 @@ public class WebGLOauthConnection : OauthConnection
         var token = accessTokenResponse.accessToken;
         webRequest.SetRequestHeader("Authorization", $"Bearer {token}");
     }
-    public override IEnumerator FetchUserInfo()
-    {
+    //public override IEnumerator FetchUserInfo()
+    //{
 
-        if (session.SupportsUserInfo())
-        {
-            yield return null;
-        }
+    //    if (session.SupportsUserInfo())
+    //    {
+    //        yield return null;
+    //    }
 
-        var task = session.GetUserInfoAsync();
-        yield return new WaitUntil(() => task.IsCompleted);
+    //    var task = session.GetUserInfoAsync();
+    //    yield return new WaitUntil(() => task.IsCompleted);
 
-        UserInfoReceived(task.Result);
+    //    UserInfoReceived(task.Result);
 
 
-        //using var webRequest = UnityWebRequest.Get(session.client.configuration.us);
-        //webRequest.SetRequestHeader("Accept", "application/json");
-        //webRequest.downloadHandler = new DownloadHandlerBuffer();
+    //    //using var webRequest = UnityWebRequest.Get(session.client.configuration.us);
+    //    //webRequest.SetRequestHeader("Accept", "application/json");
+    //    //webRequest.downloadHandler = new DownloadHandlerBuffer();
 
-        //SignWebRequest(webRequest);
+    //    //SignWebRequest(webRequest);
 
-        //yield return webRequest.SendWebRequest();
+    //    //yield return webRequest.SendWebRequest();
 
-        //if (webRequest.result != UnityWebRequest.Result.Success)
-        //{
-        //    Debug.LogWarning("Unable to retrieve user information: " + webRequest.error);
-        //    yield break;
-        //}
+    //    //if (webRequest.result != UnityWebRequest.Result.Success)
+    //    //{
+    //    //    Debug.LogWarning("Unable to retrieve user information: " + webRequest.error);
+    //    //    yield break;
+    //    //}
 
-        //OnUserInfoReceived?.Invoke(DeserializeUserInfo(webRequest.downloadHandler.text));
+    //    //OnUserInfoReceived?.Invoke(DeserializeUserInfo(webRequest.downloadHandler.text));
 
-        yield return null;
-    }
+    //    yield return null;
+    //}
 
     public override IEnumerator Refresh()
     {

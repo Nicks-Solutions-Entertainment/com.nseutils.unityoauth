@@ -1,15 +1,17 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Cdm.Authentication.Browser
+namespace nseutils.unityoauth.Browser
 {
     public class WKWebViewAuthenticationSessionBrowser : IBrowser
     {
         private TaskCompletionSource<BrowserResult> _taskCompletionSource;
+        public bool useVitualRedirectUrl => false;
 
         public async Task<BrowserResult> StartAsync(
-            string loginUrl, string redirectUrl, CancellationToken cancellationToken = default)
+            string loginUrl, string redirectUrl, string virtualRedirectUrl, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(loginUrl))
                 throw new ArgumentNullException(nameof(loginUrl));
@@ -21,11 +23,47 @@ namespace Cdm.Authentication.Browser
 
             // Discard URL parameters. They are not valid for iOS URL Scheme.
             redirectUrl = redirectUrl.Split(new char[] {':'}, StringSplitOptions.RemoveEmptyEntries)[0];
+            virtualRedirectUrl = redirectUrl.Split(new char[] {':'}, StringSplitOptions.RemoveEmptyEntries)[0];
 
             using var authenticationSession =
                 new WKWebViewAuthenticationSession(loginUrl, redirectUrl, AuthenticationSessionCompletionHandler);
 
             cancellationToken.Register(() => { _taskCompletionSource?.TrySetCanceled(); });
+
+            try
+            {
+                if (!authenticationSession.Start())
+                {
+                    _taskCompletionSource.SetResult(
+                        new BrowserResult(BrowserStatus.UnknownError, "Browser could not be started."));
+                }
+
+                return await _taskCompletionSource.Task;
+            }
+            catch (TaskCanceledException)
+            {
+                // In case of timeout cancellation.
+                authenticationSession?.Cancel();
+                throw;
+            }
+        }
+
+        public async UniTask<BrowserResult> UTask_StartAsync(string loginUrl, string redirectUrl, string virtualRedirectUrl)
+        {
+            if (string.IsNullOrEmpty(loginUrl))
+                throw new ArgumentNullException(nameof(loginUrl));
+
+            if (string.IsNullOrEmpty(redirectUrl))
+                throw new ArgumentNullException(nameof(redirectUrl));
+
+            _taskCompletionSource = new TaskCompletionSource<BrowserResult>();
+
+            // Discard URL parameters. They are not valid for iOS URL Scheme.
+            redirectUrl = redirectUrl.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0];
+            virtualRedirectUrl = redirectUrl.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0];
+
+            using var authenticationSession =
+                new WKWebViewAuthenticationSession(loginUrl, redirectUrl, AuthenticationSessionCompletionHandler);
 
             try
             {

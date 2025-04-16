@@ -1,16 +1,14 @@
-using Cdm.Authentication.OAuth2;
-using Cdm.Authentication.Utils;
-using System.Threading;
-using System.Threading.Tasks;
+using nseutils.unityoauth;
+using Cysharp.Threading.Tasks;
 using System.Runtime.Serialization;
 
-namespace Cdm.Authentication.Clients
+namespace nseutils.unityoauth.Clients
 {
-    public class MSEntraIDAuth : AuthorizationCodeFlow, IUserInfoProvider
+    public class MSEntraIDAuth : AuthorizationCodeFlow, IOauthUserInfoCompatible
     {
         private readonly string tenant;
 
-        public MSEntraIDAuth(Configuration configuration, string tenant) : base(configuration)
+        public MSEntraIDAuth(OauthAppConfiguration configuration, string tenant) : base(configuration)
         {
             this.tenant = tenant;
         }
@@ -21,25 +19,24 @@ namespace Cdm.Authentication.Clients
 
         public override string accessTokenUrl => string.IsNullOrEmpty(tenant) ? "" :
             $"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token";
-        public override string userInfoUrl => "https://graph.microsoft.com/v1.0/me";
+        public string userInfoUrl => "https://graph.microsoft.com/v1.0/me";
 
-        public async Task<IUserInfo> GetUserInfoAsync(CancellationToken cancellationToken = default)
+        public async UniTask<IOauthUserInfo> GetUserInfos()
         {
-            if (accessTokenResponse == null)
-                throw new AccessTokenRequestException(new AccessTokenRequestError()
-                {
-                    code = AccessTokenRequestErrorCode.InvalidGrant,
-                    description = "Authentication required."
-                }, null);
-
-            var authenticationHeader = accessTokenResponse.GetAuthenticationHeader();
-            return await UserInfoParser.GetUserInfoAsync<MSEntraIDInfo>(
-                httpClient, userInfoUrl, authenticationHeader, cancellationToken);
+            return await FetchUserInfo<MSEntraIDInfo>(userInfoUrl);
         }
+
+        //internal override bool supportsUserInfo => true;
+
+        //public async UniTask<MSEntraIDInfo> GetInfos()
+        //{
+        //    return await this.UTask_FetchUserInfo(accessTokenResponse);
+        //}
+
     }
 
     [DataContract]
-    public class MSEntraIDInfo : IUserInfo
+    public class MSEntraIDInfo : IOauthUserInfo
     {
         [DataMember(Name = "id", IsRequired = true)]
         public string id

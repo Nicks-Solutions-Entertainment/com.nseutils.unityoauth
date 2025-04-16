@@ -1,5 +1,4 @@
-using Cdm.Authentication;
-using Cdm.Authentication.OAuth2;
+using nseutils.unityoauth;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -37,6 +36,7 @@ public class OauthAppInfos
     [SerializeField]
     [Tooltip("The client id, as defined with the OAuth app for the associated provider")]
     string m_clientId;
+    [Header("Used just on Serverless or full back-end \n DO NOT SAVE THIS ON PROJECT BY SCRIPTABLE, insert it from outside")]
     [SerializeField]
     [
         Tooltip(
@@ -93,141 +93,9 @@ public struct ProviderTenant
 [CreateAssetMenu(fileName = "New OAuth-App Profile", menuName = "ScriptableObjects/Authentication/OAuth-App Profile")]
 public class OAuthAppProfile : ScriptableObject
 {
-    //private IConnection connection;
     [SerializeField] OauthAppInfos m_oauthAppInfos;
 
     public OauthAppInfos oauthAppInfos => m_oauthAppInfos;
-
-    //[Header("Events")]
-    //public UnityEvent OnSignedIn;
-    //public UnityEvent OnSignInFailed;
-    //public UnityEvent OnSignedOut;
-    //public UnityEvent<IUserInfo> OnUserInfoReceived;
-    //public AccessTokenResponse AccessToken
-    //{
-    //    get; private set;
-    //}
-    //public void Initialize()
-    //{
-    //    //var authorizationCodeFlow = CreateAuthorizationFlow();
-
-    //    //connection = new CdmConnection(authorizationCodeFlow);
-    //    //if (Application.platform == RuntimePlatform.WebGLPlayer)
-    //    //{
-    //    //    connection = new WebGLConnection(m_oauthAppInfos.identityProvider, authorizationCodeFlow);
-    //    //}
-
-    //    //connection.OnSignedIn += SignedIn;
-    //    //connection.OnSignedOut += SignedOut;
-    //    //connection.OnSignInFailed += SignInFailed;
-    //    //connection.OnUserInfoReceived += UserInfoReceived;
-    //}
-
-    //public void Finialize()
-    //{
-    //    //connection.OnSignedIn -= SignedIn;
-    //    //connection.OnSignedOut -= SignedOut;
-    //    //connection.OnSignInFailed -= SignInFailed;
-    //    //connection.OnUserInfoReceived -= UserInfoReceived;
-
-    //    //connection = null;
-    //}
-
-    //private void OnValidate()
-    //{
-    //    //var neededSettings = Factory.GetRequiredProviderSpecificSettings(m_oauthAppInfos.identityProvider);
-
-    //    //// Delete any key that is not needed for this identity provider
-    //    //var unnecessarySettings = m_oauthAppInfos.providerTenants
-    //    //    .Where(setting => neededSettings.Contains(setting.Key) == false)
-    //    //    .ToList();
-    //    //foreach (var setting in unnecessarySettings)
-    //    //{
-    //    //    m_oauthAppInfos.providerTenants.Remove(setting);
-    //    //}
-
-    //    //// Add any missing keys for this identity provider
-    //    //var missingSettings = neededSettings
-    //    //    .Where(setting => IdentityProviderSpecificSettings.Has(m_oauthAppInfos.providerTenants, setting) == false)
-    //    //    .ToList();
-    //    //foreach (var setting in missingSettings)
-    //    //{
-    //    //    m_oauthAppInfos.providerTenants.Add(new IdentityProviderSpecificSetting() { Key = setting, Value = "" });
-    //    //}
-    //}
-
-    //private void SignedIn(AccessTokenResponse accessTokenResponse)
-    //{
-    //    AccessToken = accessTokenResponse;
-    //    OnSignedIn?.Invoke();
-    //}
-    //private void SignedOut()
-    //{
-    //    OnSignedOut?.Invoke();
-    //}
-    //private void SignInFailed()
-    //{
-    //    OnSignInFailed?.Invoke();
-    //}
-
-    //private void UserInfoReceived(IUserInfo userinfo)
-    //{
-    //    OnUserInfoReceived?.Invoke(userinfo);
-    //}
-
-
-    //public IEnumerator SignIn()
-    //{
-    //    AccessToken = null;
-
-    //    yield return connection.Authenticate();
-    //}
-
-    //public IEnumerator RefreshBeforeExpiry()
-    //{
-    //    if (AccessToken.HasRefreshToken() == false)
-    //    {
-    //        yield break;
-    //    }
-
-    //    if (AccessToken.expiresAt == null)
-    //    {
-    //        yield break;
-    //    }
-
-    //    int seconds = (int)Math.Min(0, Math.Floor((DateTime.Now - AccessToken.expiresAt).Value.TotalSeconds - 60));
-
-    //    yield return new WaitForSecondsRealtime(seconds);
-
-    //    yield return connection.Refresh();
-    //}
-
-    //public IEnumerator SignOut()
-    //{
-    //    AccessToken = null;
-
-    //    yield return connection.SignOut();
-    //}
-
-    //public IEnumerator FetchUserInfo()
-    //{
-    //    yield return connection.FetchUserInfo();
-    //}
-
-    //private AuthorizationCodeFlow CreateAuthorizationFlow()
-    //{
-    //    return new Factory().Create(
-    //        this.m_oauthAppInfos.identityProvider,
-    //        new AuthorizationCodeFlow.Configuration()
-    //        {
-    //            clientId = this.m_oauthAppInfos.clientId,
-    //            clientSecret = this.m_oauthAppInfos.clientSecret,
-    //            redirectUri =this. m_oauthAppInfos.redirectUri,
-    //            scope =this. m_oauthAppInfos.scope
-    //        },
-    //        this.m_oauthAppInfos.providerTenants
-    //    );
-    //}
 
     public OAuthAppProfile (OauthAppInfos oauthAppInfos)
     {

@@ -1,4 +1,4 @@
-﻿namespace Cdm.Authentication.Browser
+﻿namespace nseutils.unityoauth.Browser
 {
     public enum BrowserStatus
     {

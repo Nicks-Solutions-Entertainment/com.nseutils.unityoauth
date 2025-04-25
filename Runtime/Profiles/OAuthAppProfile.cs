@@ -16,7 +16,7 @@ public enum OauthProvider
 }
 
 [Serializable]
-struct OauthRedirectURIGroup
+public struct OauthRedirectURIGroup
 {
     [SerializeField] string m_StdredirectUri;
     [SerializeField] string m_deeplinkRedirectUri;
@@ -58,21 +58,42 @@ public class OauthAppInfos
     [SerializeField] string m_entraIdTenant = "";
 
     //[SerializeField]
-    public string entraIdTenant => m_entraIdTenant;
-    public OauthProvider identityProvider => m_identityProvider;
-    public string clientId => m_clientId;
-    public string clientSecret => m_clientSecret;
+    public OauthProvider identityProvider {
+        get => m_identityProvider; set => m_identityProvider = value;
+    }
+    public string clientId
+    {
+        get => m_clientId;
+        set => m_clientId = value;
+    }
+    public string clientSecret
+    {
+        get => m_clientSecret;
+        set => m_clientSecret = value;
+    }
     public string redirectUri => !Application.isMobilePlatform || Application.isEditor? m_redirectUri.stdredirectUri : m_redirectUri.deeplinkRedirectUri;
-    public string scope => m_scope;
+
+    public void SetRedirectUrl_redirect(string value) => m_redirectUri = new(value, m_redirectUri.deeplinkRedirectUri);
+    public void SetRedirectUrl_deeplink(string value) => m_redirectUri = new(m_redirectUri.stdredirectUri, value);
+    public string scope
+    {
+        get => m_scope;
+        set => m_scope = value;
+    }
+    public string entraIdTenant
+    {
+        get => m_entraIdTenant;
+        set => m_entraIdTenant = value;
+    }
 
 
     //gerar construtor
-    public OauthAppInfos(OauthProvider identityProvider, string clientId, string clientSecret, string redirectUri, string scope)
+    public OauthAppInfos(OauthProvider identityProvider, string clientId, string clientSecret, OauthRedirectURIGroup redirectUriGroup, string scope,string entraIdTenant = "")
     {
         m_identityProvider = identityProvider;
         m_clientId = clientId;
         m_clientSecret = clientSecret;
-        m_redirectUri = new(redirectUri);
+        m_redirectUri = redirectUriGroup;
         m_scope = scope;
     }
 }

@@ -119,13 +119,14 @@ namespace nseutils.unityoauth
                 }
 
                 var authenticationHeader = accessTokenResponse.GetAuthenticationHeader();
-
+                var authHeader_string = authenticationHeader.ToString();
                 using var request = UnityWebRequest.Get(userInfoUrl);
                 request.SetRequestHeader("Accept", "application/json");
-                request.SetRequestHeader("Authorization", authenticationHeader.ToString());
+                request.SetRequestHeader("Authorization", authHeader_string );
 
 #if UNITY_EDITOR
-                Debug.Log($"{request}");
+                Debug.Log($"FetchUserInfo :: {request}\n\n" +
+                    $"{authHeader_string}");
 #endif
                 var operation = await request.SendWebRequest();
 

@@ -72,7 +72,7 @@ namespace nseutils.unityoauth
             _ += "}";
             Debug.Log(_);
         }
-        
+
         IEnumerator _SignOut()
         {
             yield return connection.SignOut();
@@ -112,14 +112,45 @@ namespace nseutils.unityoauth
 
         private void DeepLinkActivated(string deeplinkUrl) => onDeeplinkActivated?.Invoke(deeplinkUrl);
 
-        private void OnEnable()
+        public void SetAppProfile(OAuthAppProfile _appProfile)
         {
+            if (connection != null)
+            {
+                Debug.LogError($"Oauth must to be Stoped first.");
+            }
+            appProfile = _appProfile;
+        }
+
+        public void StartOauth()
+        {
+            if (appProfile == null)
+            {
+                Debug.LogError("No OAuthAppProfile assigned");
+                return;
+            }
+
             connection = new StdOauthConection(appProfile.oauthAppInfos);
 
             connection.OnSignedIn += OnSignInSuccess;
             connection.OnSignedOut += OnSignOut;
             connection.OnSignInFailed += OnFailSignIn;
             connection.OnUserInfoReceived += OnUserInfoReceived;
+
+            Debug.Log($"Oauth Started with {appProfile.oauthAppInfos.identityProvider}");
+        }
+
+        public void StopOauth()
+        {
+            if (connection != null)
+            {
+                connection.OnSignedIn -= OnSignInSuccess;
+                connection.OnSignedOut -= OnSignOut;
+                connection.OnSignInFailed -= OnFailSignIn;
+                connection.OnUserInfoReceived -= OnUserInfoReceived;
+
+            }
+            connection = null;
+            Debug.Log($"Oauth Stoped!");
         }
 
         private void OnSignInSuccess(AccessTokenResponse accessTokenResponse)

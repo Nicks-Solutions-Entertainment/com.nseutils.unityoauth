@@ -21,6 +21,8 @@ namespace nseutils.unityoauth
         public Action _signInFailed;
         public Action _signedOut;
 
+
+
         public string applicationAbsoluteURL
         {
             private set; get;
@@ -29,6 +31,11 @@ namespace nseutils.unityoauth
         internal OauthConnection connection
         {
             get; private set;
+        }
+
+        public string authenticationToken
+        {
+            get => connection.session.codeflow.authenticationToken;
         }
 
         public void RegisterUserLogedCallback(UserInfoReceived handler)

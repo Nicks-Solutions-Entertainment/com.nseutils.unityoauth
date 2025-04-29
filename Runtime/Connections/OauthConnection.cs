@@ -12,7 +12,10 @@ namespace nseutils.unityoauth
 
     public abstract class OauthConnection
     {
-        protected readonly AuthenticationSession session;
+        public readonly AuthenticationSession session;
+
+        
+
         protected AccessTokenResponse accessTokenResponse;
 
         const string virtualRedirectUrl = "http://localhost:5000/auth/callback.html";
@@ -21,6 +24,7 @@ namespace nseutils.unityoauth
 
         public OauthConnection(OauthAppInfos oauthProfileInfos)
         {
+            
             CrossPlatformBrowser _browser = new CrossPlatformBrowser();
             //Editor
             {

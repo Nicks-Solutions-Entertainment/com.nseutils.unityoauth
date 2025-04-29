@@ -63,6 +63,7 @@ namespace nseutils.unityoauth
             get; private set;
         }
 
+
         /// <summary>
         /// Gets the client configuration for the authentication method.
         /// </summary>
@@ -103,6 +104,17 @@ namespace nseutils.unityoauth
             codeVerifier = GenerateCodeVerifier();
         }
 
+        internal string authenticationToken
+        {
+            get
+            {
+                var authenticationHeader = accessTokenResponse.GetAuthenticationHeader();
+                var authHeader_string = authenticationHeader.ToString();
+                return authHeader_string;
+            }
+        }
+
+
         protected async UniTask<TOauthUserInfo> FetchUserInfo<TOauthUserInfo>(string userInfoUrl) where TOauthUserInfo : IOauthUserInfo
         {
 
@@ -118,8 +130,8 @@ namespace nseutils.unityoauth
                     }, null);
                 }
 
-                var authenticationHeader = accessTokenResponse.GetAuthenticationHeader();
-                var authHeader_string = authenticationHeader.ToString();
+                var authHeader_string = authenticationToken;
+
                 using var request = UnityWebRequest.Get(userInfoUrl);
                 request.SetRequestHeader("Accept", "application/json");
                 request.SetRequestHeader("Authorization", authHeader_string );

@@ -67,7 +67,7 @@ public class WebGLOauthConnection : OauthConnection
                 tokenType = response.token_type,
                 scope = String.Join(' ', response.scopes),
             };
-            SignedInSuccess(accessTokenResponse);
+            SignedInSuccess();
         };
 
         interceptor.OnSignInFailed += () =>

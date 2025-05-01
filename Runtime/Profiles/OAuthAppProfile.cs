@@ -73,7 +73,9 @@ public class OauthAppInfos
     }
     public string redirectUri => !Application.isMobilePlatform || Application.isEditor? m_redirectUri.stdredirectUri : m_redirectUri.deeplinkRedirectUri;
 
-    public void SetRedirectUrl_redirect(string value) => m_redirectUri = new(value, m_redirectUri.deeplinkRedirectUri);
+    public string GetRedirectUrl_std() => m_redirectUri.stdredirectUri;
+    public void SetRedirectUrl_std(string value) => m_redirectUri = new(value, m_redirectUri.deeplinkRedirectUri);
+    public string GetRedirectUrl_deeplink() => m_redirectUri.deeplinkRedirectUri;
     public void SetRedirectUrl_deeplink(string value) => m_redirectUri = new(m_redirectUri.stdredirectUri, value);
     public string scope
     {

@@ -12,6 +12,7 @@ namespace nseutils.unityoauth
 
         static OAuthManager _instance;
         public static OAuthManager Instance => _instance;
+
         public delegate void UserInfoReceived(IOauthUserInfo userInfo);
         public delegate void DeepLinkDelegate(string deeplinkUrl);
 
@@ -22,7 +23,10 @@ namespace nseutils.unityoauth
         public Action _signedOut;
 
 
-
+        public IOauthUserInfo logedUserInfo
+        {
+            get => connection.session.authenticatedUser;
+        }
         public string applicationAbsoluteURL
         {
             private set; get;
@@ -36,6 +40,11 @@ namespace nseutils.unityoauth
         public string authenticationToken
         {
             get => connection.session.codeflow.authenticationToken;
+            set {
+                if (connection != null) connection.SetAuthenticationToken(value);
+                else
+                    Debug.Log($"connection on set yet");
+            }
         }
 
         public void RegisterUserLogedCallback(UserInfoReceived handler)
@@ -55,7 +64,8 @@ namespace nseutils.unityoauth
         async void UTask_SignIn()
         {
             applicationAbsoluteURL = Application.absoluteURL;
-            bool _ = await connection.UTask_Authenticate();
+            bool _authenticateResult = await connection.UTask_Authenticate();
+
         }
 
         [ContextMenu("TestDictionary")]
@@ -85,11 +95,11 @@ namespace nseutils.unityoauth
             yield return connection.SignOut();
         }
 
-        void UTask_FetchUserInfo()
-        {
+        //void UTask_FetchUserInfo()
+        //{
 
-            connection.UTask_FetchUserInfo();
-        }
+        //    connection.UTask_FetchUserInfo();
+        //}
         private void Awake()
         {
             if (_instance == null)
@@ -138,10 +148,10 @@ namespace nseutils.unityoauth
 
             connection = new StdOauthConection(appProfile.oauthAppInfos);
 
-            connection.OnSignedIn += OnSignInSuccess;
-            connection.OnSignedOut += OnSignOut;
-            connection.OnSignInFailed += OnFailSignIn;
-            connection.OnUserInfoReceived += OnUserInfoReceived;
+            connection.singedSuccess += OnSignInSuccess;
+            connection.singedOut += OnSignOut;
+            connection.signedFail += OnFailSignIn;
+            //connection.OnUserInfoReceived += OnUserInfoReceived;
 
             Debug.Log($"Oauth Started with {appProfile.oauthAppInfos.identityProvider}");
         }
@@ -150,20 +160,20 @@ namespace nseutils.unityoauth
         {
             if (connection != null)
             {
-                connection.OnSignedIn -= OnSignInSuccess;
-                connection.OnSignedOut -= OnSignOut;
-                connection.OnSignInFailed -= OnFailSignIn;
-                connection.OnUserInfoReceived -= OnUserInfoReceived;
+                connection.singedSuccess -= OnSignInSuccess;
+                connection.singedOut -= OnSignOut;
+                connection.signedFail -= OnFailSignIn;
+                //connection.OnUserInfoReceived -= OnUserInfoReceived;
 
             }
             connection = null;
             Debug.Log($"Oauth Stoped!");
         }
 
-        private void OnSignInSuccess(AccessTokenResponse accessTokenResponse)
+        private void OnSignInSuccess()
         {
             _signedIn?.Invoke();
-            UTask_FetchUserInfo();
+            //UTask_FetchUserInfo();
         }
 
 

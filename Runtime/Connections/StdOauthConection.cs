@@ -29,7 +29,7 @@ namespace nseutils.unityoauth
             }
             accessTokenResponse = _tokenResponse.Result;
             Debug.Log($"SignedInSuccess...");
-            SignedInSuccess(accessTokenResponse);
+            SignedInSuccess();
         }
 
         public override void SignWebRequest(UnityWebRequest webRequest)

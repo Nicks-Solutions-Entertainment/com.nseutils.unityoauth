@@ -15,6 +15,8 @@ namespace nseutils.unityoauth
         public readonly AuthorizationCodeFlow codeflow;
         private readonly IBrowser _browser;
 
+        internal IOauthUserInfo authenticatedUser;
+
         public bool useVitualRedirectUrl => _browser.useVitualRedirectUrl;
 
         public TimeSpan loginTimeout { get; set; } = TimeSpan.FromMinutes(10);
@@ -40,7 +42,7 @@ namespace nseutils.unityoauth
             return tokenResponse.GetAuthenticationHeader();
         }
 
-        internal async UniTask<AccessTokenResponse> UTask_Authenticate()
+        internal async UniTask<AccessTokenResponse> UTask_RequestAccessToken()
         {
             using var timeoutCancellationTokenSource = new CancellationTokenSource(loginTimeout);
 

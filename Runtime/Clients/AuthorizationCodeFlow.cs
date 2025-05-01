@@ -27,7 +27,7 @@ namespace nseutils.unityoauth
     /// redirection from the authorization server back to your application. For example, a web browser, desktop,
     /// or mobile application operated by a user to sign in to your app and access their data.
     /// </summary>
-    public abstract class AuthorizationCodeFlow : IDisposable 
+    public abstract class AuthorizationCodeFlow : IDisposable
     {
 
         /// <summary>
@@ -114,6 +114,7 @@ namespace nseutils.unityoauth
             }
         }
 
+        //protected abstract IOauthUserInfo DefaultUserInfo()
 
         protected async UniTask<TOauthUserInfo> FetchUserInfo<TOauthUserInfo>(string userInfoUrl) where TOauthUserInfo : IOauthUserInfo
         {
@@ -123,28 +124,33 @@ namespace nseutils.unityoauth
                 if (accessTokenResponse == null)
                 {
                     Debug.Assert(accessTokenResponse == null, $"accessTokenResponse null {accessTokenResponse == null}");
-                    throw new AccessTokenRequestException(new AccessTokenRequestError()
+                    var exception = 
+                    new AccessTokenRequestException(new AccessTokenRequestError()
                     {
                         code = AccessTokenRequestErrorCode.InvalidGrant,
                         description = "Authentication required."
-                    }, null);
+                    },  HttpStatusCode.BadRequest);
+
+                    Debug.LogError(exception);
+                    return default;
                 }
 
                 var authHeader_string = authenticationToken;
 
                 using var request = UnityWebRequest.Get(userInfoUrl);
                 request.SetRequestHeader("Accept", "application/json");
-                request.SetRequestHeader("Authorization", authHeader_string );
+                request.SetRequestHeader("Authorization", authHeader_string);
 
 #if UNITY_EDITOR
-                Debug.Log($"FetchUserInfo :: {request}\n\n" +
-                    $"{authHeader_string}");
+                //Debug.Log($"FetchUserInfo :: {request}\n\n" +
+                    //$"{authHeader_string}");
 #endif
                 var operation = await request.SendWebRequest();
 
                 var responseJson = request.downloadHandler.text;
-                Debug.Log($"GetAccessTokenInternalAsync :: {responseJson}");
-
+#if UNITY_EDITOR
+                //Debug.Log($"GetAccessTokenInternalAsync :: {responseJson}"); 
+#endif
 
                 try
                 {
@@ -449,7 +455,7 @@ namespace nseutils.unityoauth
             request.SetRequestHeader("Accept", "application/json");
 
 #if UNITY_EDITOR
-            Debug.Log($"content:{JsonConvert.SerializeObject(content,Formatting.Indented)}");
+            Debug.Log($"content:{JsonConvert.SerializeObject(content, Formatting.Indented)}");
 #endif
 
             var operation = await request.SendWebRequest();
@@ -528,91 +534,98 @@ namespace nseutils.unityoauth
         }
 
 
-        
+
         public void Dispose()
         {
             httpClient?.Dispose();
         }
 
-        
+        internal async void SetAuthenticationToken(string value)
+        {
+            accessTokenResponse = string.IsNullOrEmpty(value)? null : new()
+            {
+                accessToken = value,
+                tokenType = "Bearer"
+            };
+        }
     }
 
     /// <summary>
-        /// The configuration of third-party authentication service client.
+    /// The configuration of third-party authentication service client.
+    /// </summary>
+    [DataContract]
+    public struct OauthAppConfiguration
+    {
+        /// <summary>
+        /// User on certain types of OauthBrowser (platforms) to determine if a virtual redirect URL is used. to HttpListener
         /// </summary>
-        [DataContract]
-        public struct OauthAppConfiguration
+        [JsonIgnore]
+        public bool useVirtualRedirectUrl
         {
-            /// <summary>
-            /// User on certain types of OauthBrowser (platforms) to determine if a virtual redirect URL is used. to HttpListener
-            /// </summary>
-            [JsonIgnore]
-            public bool useVirtualRedirectUrl
-            {
-                get; set;
-            }
-
-            /// <summary>
-            /// The client identifier issued to the client during the registration process described by
-            /// <a href="https://www.rfc-editor.org/rfc/rfc6749#section-2.2">Section 2.2</a>.
-            /// </summary>
-            [DataMember(Name = "client_id", IsRequired = true)]
-            public string clientId
-            {
-                get; set;
-            }
-
-            /// <summary>
-            /// The client secret. The client MAY omit the parameter if the client secret is an empty string.
-            /// </summary>
-            [DataMember(Name = "client_secret")]
-            public string clientSecret
-            {
-                get; set;
-            }
-
-            /// <summary>
-            /// The authorization and token endpoints allow the client to specify the scope of the access request using
-            /// the "scope" request parameter.  In turn, the authorization server uses the "scope" response parameter to
-            /// inform the client of the scope of the access token issued. The value of the scope parameter is expressed
-            /// as a list of space- delimited, case-sensitive strings.  The strings are defined by the authorization server.
-            /// If the value contains multiple space-delimited strings, their order does not matter, and each string adds an
-            /// additional access range to the requested scope.
-            /// </summary>
-            [DataMember(Name = "scope")]
-            public string scope
-            {
-                get; set;
-            }
-
-            /// <summary>
-            /// After completing its interaction with the resource owner, the authorization server directs the resource
-            /// owner's user-agent back to the client. The authorization server redirects the user-agent to the client's
-            /// redirection endpoint previously established with the authorization server during the client registration
-            /// process or when making the authorization request.
-            /// </summary>
-            /// <remarks>
-            /// The redirection endpoint URI MUST be an absolute URI as defined by
-            /// <a href="https://www.rfc-editor.org/rfc/rfc3986#section-4.3">[RFC3986] Section 4.3</a>.
-            /// The endpoint URI MAY include an "application/x-www-form-urlencoded" formatted (per
-            /// <a href="https://www.rfc-editor.org/rfc/rfc6749#appendix-B">Appendix B</a>) query
-            /// component (<a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.4">[RFC3986] Section 3.4</a>),
-            /// which MUST be retained when adding additional query parameters. The endpoint URI MUST NOT include
-            /// a fragment component.
-            /// </remarks>
-            [DataMember(Name = "redirect_uri")]
-            public string redirectUri
-            {
-                get; set;
-            }
-
-            [JsonIgnore]
-
-            public string virtualRedirectUri
-            {
-                get; set;
-            }
-
-            
+            get; set;
         }
+
+        /// <summary>
+        /// The client identifier issued to the client during the registration process described by
+        /// <a href="https://www.rfc-editor.org/rfc/rfc6749#section-2.2">Section 2.2</a>.
+        /// </summary>
+        [DataMember(Name = "client_id", IsRequired = true)]
+        public string clientId
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// The client secret. The client MAY omit the parameter if the client secret is an empty string.
+        /// </summary>
+        [DataMember(Name = "client_secret")]
+        public string clientSecret
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// The authorization and token endpoints allow the client to specify the scope of the access request using
+        /// the "scope" request parameter.  In turn, the authorization server uses the "scope" response parameter to
+        /// inform the client of the scope of the access token issued. The value of the scope parameter is expressed
+        /// as a list of space- delimited, case-sensitive strings.  The strings are defined by the authorization server.
+        /// If the value contains multiple space-delimited strings, their order does not matter, and each string adds an
+        /// additional access range to the requested scope.
+        /// </summary>
+        [DataMember(Name = "scope")]
+        public string scope
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// After completing its interaction with the resource owner, the authorization server directs the resource
+        /// owner's user-agent back to the client. The authorization server redirects the user-agent to the client's
+        /// redirection endpoint previously established with the authorization server during the client registration
+        /// process or when making the authorization request.
+        /// </summary>
+        /// <remarks>
+        /// The redirection endpoint URI MUST be an absolute URI as defined by
+        /// <a href="https://www.rfc-editor.org/rfc/rfc3986#section-4.3">[RFC3986] Section 4.3</a>.
+        /// The endpoint URI MAY include an "application/x-www-form-urlencoded" formatted (per
+        /// <a href="https://www.rfc-editor.org/rfc/rfc6749#appendix-B">Appendix B</a>) query
+        /// component (<a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.4">[RFC3986] Section 3.4</a>),
+        /// which MUST be retained when adding additional query parameters. The endpoint URI MUST NOT include
+        /// a fragment component.
+        /// </remarks>
+        [DataMember(Name = "redirect_uri")]
+        public string redirectUri
+        {
+            get; set;
+        }
+
+        [JsonIgnore]
+
+        public string virtualRedirectUri
+        {
+            get; set;
+        }
+
+
+    }
 }

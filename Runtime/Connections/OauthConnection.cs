@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Threading.Tasks;
 
 namespace nseutils.unityoauth
 {
@@ -14,7 +15,7 @@ namespace nseutils.unityoauth
     {
         public readonly AuthenticationSession session;
 
-        
+
 
         protected AccessTokenResponse accessTokenResponse;
 
@@ -24,7 +25,7 @@ namespace nseutils.unityoauth
 
         public OauthConnection(OauthAppInfos oauthProfileInfos)
         {
-            
+
             CrossPlatformBrowser _browser = new CrossPlatformBrowser();
             //Editor
             {
@@ -81,24 +82,24 @@ namespace nseutils.unityoauth
         }
 
 
-        public delegate void OnSignedInDelegate(AccessTokenResponse accessTokenResponse);
-        public delegate void OnSignInFailedDelegate();
-        public delegate void OnSignedOutDelegate();
-        public delegate void OnUserInfoReceivedDelegate(IOauthUserInfo userInfo);
+        public delegate void SignedInSuccessDelegate();
+        public delegate void AccessTokenValidationResponse(bool validateSuccess);
+        public delegate void SignInFailedDelegate();
+        public delegate void SignedOutDelegate();
+        public delegate void UserInfoReceivedDelegate(IOauthUserInfo userInfo);
 
-        internal event OnSignedInDelegate OnSignedIn;
-        internal event OnSignedOutDelegate OnSignedOut;
-        internal event OnSignInFailedDelegate OnSignInFailed;
-        internal event OnUserInfoReceivedDelegate OnUserInfoReceived;
+        internal event SignedInSuccessDelegate singedSuccess;
+        internal event SignedOutDelegate singedOut;
+        internal event SignInFailedDelegate signedFail;
 
-        protected void SignedInSuccess(AccessTokenResponse accessTokenResponse) => OnSignedIn?.Invoke(accessTokenResponse);
-        protected void SignedInFailed() => OnSignInFailed?.Invoke();
-        protected void UserInfoReceived(IOauthUserInfo userInfo) => OnUserInfoReceived?.Invoke(userInfo);
+        protected void SignedInSuccess() => singedSuccess?.Invoke();
+        protected void SignedInFailed() => signedFail?.Invoke();
+        //protected void UserInfoReceived(IOauthUserInfo userInfo) => OnUserInfoReceived?.Invoke(userInfo);
 
         protected void SignedOut()
         {
             accessTokenResponse = null;
-            OnSignedOut?.Invoke();
+            singedOut?.Invoke();
         }
 
 
@@ -108,7 +109,7 @@ namespace nseutils.unityoauth
 
             await UniTask.SwitchToMainThread();
             //UniTask<Cdm.Authentication.OAuth2.AccessTokenResponse> task = session.UTask_Authenticate();
-            AccessTokenResponse _tokenResponse = await session.UTask_Authenticate();
+            AccessTokenResponse _tokenResponse = await session.UTask_RequestAccessToken();
 
             //await UniTask.WaitUntil(() => task.Status.IsCompleted() || task.Status.IsCanceled());
             //await UniTask.WaitUntil(() => task.IsCompleted || task.IsCanceled);
@@ -121,10 +122,16 @@ namespace nseutils.unityoauth
                 return false;
             }
             accessTokenResponse = _tokenResponse;
-            Debug.Log($"SignedInSuccess...");
+#if UNITY_EDITOR
+            //Debug.Log($"SignedInSuccess..."); 
+#endif
 
-            SignedInSuccess(accessTokenResponse);
-            return true;
+            bool _authenticateUser = await UTask_FetchUserInfo();
+            if (_authenticateUser)
+                SignedInSuccess();
+            else
+                SignedInFailed();
+            return _authenticateUser;
         }
 
         public abstract IEnumerator Authenticate();
@@ -132,21 +139,26 @@ namespace nseutils.unityoauth
         public virtual void _SignOut()
         {
             accessTokenResponse = null;
-            OnSignedOut?.Invoke();
+            singedOut?.Invoke();
         }
         public abstract IEnumerator SignOut();
 
 
-        public virtual async void UTask_FetchUserInfo()
+        public virtual async UniTask<bool> UTask_FetchUserInfo()
         {
-            if (!session.supportsUserInfo)
-            {
-                Debug.LogError($"User info is not supported by this provider");
-                return;
-            }
+            //if (!session.supportsUserInfo)
+            //{
+            //    Debug.LogError($"User info is not supported by this provider");
+            //    return false;
+            //}
 
-            var _userInfo = await session.UTask_GetUserInfo();
-            UserInfoReceived(_userInfo);
+            session.authenticatedUser = await session.UTask_GetUserInfo();
+
+            bool _success = session.authenticatedUser != null && !string.IsNullOrEmpty(session.authenticatedUser.id);
+
+
+            //UserInfoReceived(session.authenticatedUser);
+            return _success;
         }
         //public abstract IEnumerator FetchUserInfo();
 
@@ -159,15 +171,29 @@ namespace nseutils.unityoauth
         }
         public abstract IEnumerator Refresh();
 
+        internal async void SetAuthenticationToken(string value)
+        {
+            session.codeflow.SetAuthenticationToken(value);
+            bool _validadeResult = await UTask_FetchUserInfo();
+            if (_validadeResult)
+            {
+                SignedInSuccess();
+            }
+            else
+            {
+                session.codeflow.SetAuthenticationToken(null);
+                SignedInFailed();
+            }
+        }
 
         ~OauthConnection()
         {
             session.Dispose();
-            OnSignedIn = null;
-            OnSignedOut = null;
-            OnSignInFailed = null;
-            OnUserInfoReceived = null;
+            singedSuccess = null;
+            singedOut = null;
+            signedFail = null;
+            //OnUserInfoReceived = null;
 
         }
-    } 
+    }
 }

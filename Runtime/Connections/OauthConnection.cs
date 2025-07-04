@@ -99,6 +99,7 @@ namespace nseutils.unityoauth
         protected void SignedOut()
         {
             accessTokenResponse = null;
+            session.authenticatedUser = null;
             singedOut?.Invoke();
         }
 

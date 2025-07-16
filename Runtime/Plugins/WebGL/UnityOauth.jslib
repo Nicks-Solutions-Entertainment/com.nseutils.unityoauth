@@ -14,14 +14,25 @@ mergeInto(LibraryManager.library,
         script.text = `
         
             window.addEventListener('message', (event) => {
-                console.log('Popup URL:', event.data);
+                //console.log('Popup URL:', event.data.data);
 
-                unityInstance.SendMessage(
-                "WebGlOauthListener", 
-                "SignedIn", 
-                    event.data
-                );
-
+                switch (event.data.messageType) {
+                    case 'auth_link':
+                        {
+                            this.windowObjectReference.postMessage(window.location.href, 'https://auth.diverealities.com');
+                        }
+                        break;
+                    case 'auth_callback':
+                        unityInstance.SendMessage(
+                            "WebGlOauthListener", 
+                            "SignedIn", 
+                            event.data.data
+                        );
+                        break;
+                    default:
+                        console.error('Unknown message type:', event.messageType);
+                        break;
+                }
             });
         `;
         document.head.appendChild(script);
@@ -29,19 +40,22 @@ mergeInto(LibraryManager.library,
 
     StartSignin : function(url){
         const strWindowFeatures = 'toolbar=no, menubar=no, width=600, height=700, top=100, left=100';
-        
+       
         url = UTF8ToString(url);
         console.log('js:StartSignin', url);
         if (this.windowObjectReference == null || 
         this.windowObjectReference != null && this.windowObjectReference.closed) {
             this.windowObjectReference = window.open(url, name, strWindowFeatures);
             //this.RegisterOpenWindowCallback();
+            
         } else if (this.previousUrl !== url) {
             this.windowObjectReference = window.open(url, name, strWindowFeatures);
             //this.RegisterOpenWindowCallback();
             this.windowObjectReference.focus();
+            
         } else {
             this.windowObjectReference.focus();
+            
         }
 
         this.previousUrl = url;

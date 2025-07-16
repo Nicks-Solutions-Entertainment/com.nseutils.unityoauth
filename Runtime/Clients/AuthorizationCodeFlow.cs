@@ -507,8 +507,9 @@ namespace nseutils.unityoauth
 
             var response = await httpClient.SendAsync(tokenRequest, cancellationToken);
             string responseJson = await response.Content.ReadAsStringAsync();
-
+#if UNITY_EDITOR
             Debug.Log($"GetAccessTokenInternalAsync :: {responseJson}");
+#endif
             if (response.IsSuccessStatusCode)
             {
                 //var responseJson = await response.Content.ReadAsStringAsync();

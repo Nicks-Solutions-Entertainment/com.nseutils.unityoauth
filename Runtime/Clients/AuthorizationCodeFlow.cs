@@ -463,8 +463,9 @@ namespace nseutils.unityoauth
             var operation = await request.SendWebRequest();
 
             var responseJson = request.downloadHandler.text;
+#if UNITY_EDITOR
             Debug.Log($"GetAccessTokenInternalAsync :: {responseJson}");
-
+#endif
             if (request.result == UnityWebRequest.Result.Success && request.responseCode >= 200 && request.responseCode < 300)
             {
                 var tokenResponse = JsonConvert.DeserializeObject<AccessTokenResponse>(responseJson);

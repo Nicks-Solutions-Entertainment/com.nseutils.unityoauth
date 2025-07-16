@@ -283,11 +283,12 @@ namespace nseutils.unityoauth
             var parameters = GetAccessTokenParameters(authorizationResponse.code);
 
             Debug.Assert(parameters != null);
+#if UNITY_EDITOR
             Debug.Log($"ExchangeCodeForAccessTokenAsync :: " +
                 $"\n paramenters{JsonConvert.SerializeObject(parameters, Formatting.Indented)}" +
                 $"\n authorizationResponse.code: " +
                 $"{authorizationResponse.code}");
-
+#endif
             accessTokenResponse = await Utask_GetAccessTokenInternal((parameters));
 
             return accessTokenResponse;
@@ -327,11 +328,12 @@ namespace nseutils.unityoauth
             var parameters = GetAccessTokenParameters(authorizationResponse.code);
 
             Debug.Assert(parameters != null);
+#if UNITY_EDITOR
             Debug.Log($"ExchangeCodeForAccessTokenAsync :: " +
                 $"\n paramenters{JsonConvert.SerializeObject(parameters, Formatting.Indented)}" +
                 $"\n authorizationResponse.code: " +
                 $"{authorizationResponse.code}");
-
+#endif
             accessTokenResponse =
                 await GetAccessTokenInternalAsync(new FormUrlEncodedContent(parameters), cancellationToken);
 
